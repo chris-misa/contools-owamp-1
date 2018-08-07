@@ -20,7 +20,7 @@ wget ${OWAMP_SOURCE_DIR}${OWAMP_SOURCE_FILE}
 # Make a clean directory to untar into so we can cd owamp-* later
 mkdir -p owamp
 tar xvf ${OWAMP_SOURCE_FILE} -C owamp
-cd owamp-* && ./configure && make && make install
+cd owamp/owamp-* && ./configure && make && make install
 
 # Set up docker
 apt-get install -y \
@@ -29,7 +29,7 @@ apt-get install -y \
   curl \
   software-properties-common
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-ket add -
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 
 add-apt-repository \
   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
@@ -37,4 +37,4 @@ add-apt-repository \
   stable"
 
 apt-get update
-apt-get install docker-ce
+apt-get install -y docker-ce
