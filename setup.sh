@@ -7,10 +7,13 @@
 # then a routine copied from docker's instalation instructions
 #
 
+
+#
+# Install OWAMP natively
+#
 OWAMP_SOURCE_DIR="http://software.internet2.edu/sources/owamp/"
 OWAMP_SOURCE_FILE="owamp-3.4-10.tar.gz"
 
-# Get dependencies
 apt-get update
 apt-get install -y gcc make wget libi2util-dev i2util-tools
 
@@ -21,6 +24,9 @@ wget ${OWAMP_SOURCE_DIR}${OWAMP_SOURCE_FILE}
 mkdir -p owamp
 tar xvf ${OWAMP_SOURCE_FILE} -C owamp
 cd owamp/owamp-* && ./configure && make && make install
+
+# The included owamp config file needs these directories
+mkdir -p /owamp/info /owamp/temp
 
 # Set up docker
 apt-get install -y \
@@ -38,3 +44,5 @@ add-apt-repository \
 
 apt-get update
 apt-get install -y docker-ce
+
+
