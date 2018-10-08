@@ -81,7 +81,7 @@ do
   
   
   while test -d "/proc/$PING_PID" 2> /dev/null \
-	  && test -d "/proc/$NAT_PING_PID" 2> /dev/null
+	  || test -d "/proc/$NAT_PING_PID" 2> /dev/null
 	do sleep 1; done;
   echo "  owpings returned"
   
