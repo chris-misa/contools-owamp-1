@@ -30,7 +30,7 @@ META_DATA="Metadata"
 # declare -a IPERF_ARGS=("1M" "3M" "10M" "32M" "100M" "316M" "1G" "3G" "10G")
 # declare -a IPERF_ARGS=("nop" "1M" "10M" "100M" "1G" "10G")
 # declare -a IPERF_ARGS=("nop" "500K" "1M" "100M" "1G" "10G")
-declare -a IPERF_ARGS=("1M")
+declare -a IPERF_ARGS=("nop")
 
 OLD_PWD=$(pwd) # used in the scripts referenced below to get at functions in this dir
 

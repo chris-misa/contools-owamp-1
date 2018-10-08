@@ -1,6 +1,7 @@
 #!/bin/bash
 
 TRACE_CMD_ARGS="-e net:net_dev_queue -e net:net_dev_xmit -e net:napi_gro_frags_entry -e net:netif_receive_skb --date"
+PARSE_CMD="${OLD_PWD}/parse_stream parse_stream.conf"
 
 for arg in ${IPERF_ARGS[@]}
 do
@@ -37,7 +38,7 @@ do
   #
   echo $B Container control $B
   # Start ping in container
-  docker exec $PING_CONTAINER_NAME \
+  docker exec -i $PING_CONTAINER_NAME \
     $CONTAINER_PING_CMD $PING_ARGS $TARGET_IPV4 \
     > container_control_${TARGET_IPV4}_${arg}.owping &
   echo "  pinging. . ."
@@ -64,7 +65,7 @@ do
   
   $PAUSE_CMD
 
-  docker exec $PING_CONTAINER_NAME \
+  docker exec -i $PING_CONTAINER_NAME \
     $CONTAINER_PING_CMD $PING_ARGS $TARGET_IPV4 \
     > container_monitored_${TARGET_IPV4}_${arg}.ping &
   echo "  container pinging. . ."
@@ -91,10 +92,14 @@ do
   
   $PAUSE_CMD
 
-  trace-cmd report -t container_monitored_${TARGET_IPV4}_${arg}.dat \
+  trace-cmd report container_monitored_${TARGET_IPV4}_${arg}.dat \
 	  > container_monitored_${TARGET_IPV4}_${arg}.trace
   rm container_monitored_${TARGET_IPV4}_${arg}.dat
   echo "  converted raw trace data"
+  cat container_monitored_${TARGET_IPV4}_${arg}.trace \
+	  | $PARSE_CMD \
+	  > container_monitored_${TARGET_IPV4}_${arg}.latency
+  echo "  converted to latencies"
 
   if [ $arg != "nop" ]
   then
