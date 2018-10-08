@@ -15,7 +15,7 @@ OWAMP_SOURCE_DIR="http://software.internet2.edu/sources/owamp/"
 OWAMP_SOURCE_FILE="owamp-3.4-10.tar.gz"
 
 apt-get update
-apt-get install -y gcc make wget libi2util-dev i2util-tools
+apt-get install -y gcc make wget libi2util-dev i2util-tools trace-cmd
 
 # Download owamp source
 wget ${OWAMP_SOURCE_DIR}${OWAMP_SOURCE_FILE}
