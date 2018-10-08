@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TRACE_CMD_ARGS="-e net:net_dev_queue -e net:net_dev_xmit -e net:napi_gro_frags_entry -e net:netif_receive_skb --date"
-PARSE_CMD="${OLD_PWD}/parse_stream parse_stream.conf"
+PARSE_CMD="${OLD_PWD}/parse_stream ${OLD_PWD}/parse_stream.conf"
 
 for arg in ${IPERF_ARGS[@]}
 do
@@ -24,7 +24,7 @@ do
 
   echo "  pinging. . ."
   
-  PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
+  export PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
   echo "  got owping pid: $PING_PID"
   
   
@@ -45,10 +45,13 @@ do
 
   $PAUSE_CMD
 
-  PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
+  export PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
   echo "  got ping pid: $PING_PID"
   
-  while test -d "/proc/$PING_PID" 2> /dev/null; do sleep 1; done;
+  #######################
+  # This and the one below are not working!
+
+  while [ -d "/proc/$PING_PID" ]; do sleep 1; done;
   echo "  owping returned"
 
   $PAUSE_CMD
@@ -67,22 +70,24 @@ do
 
   docker exec -i $PING_CONTAINER_NAME \
     $CONTAINER_PING_CMD $PING_ARGS $TARGET_IPV4 \
-    > container_monitored_${TARGET_IPV4}_${arg}.ping &
+    > container_monitored_${TARGET_IPV4}_${arg}.owping &
   echo "  container pinging. . ."
 
-  PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
+  $PAUSE_CMD
+
+  export PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
   echo "  got container owping pid $PING_PID"
 
   # Run ping in background
   $NATIVE_PING_CMD $PING_ARGS $TARGET_IPV4 \
-    > native_monitored_${TARGET_IPV4}_${arg}.ping &
-  NAT_PING_PID=$!
+    > native_monitored_${TARGET_IPV4}_${arg}.owping &
+  export NAT_PING_PID=$!
   echo "  native pinging. . . (pid $NAT_PING_PID)"
   
   
-  while test -d "/proc/$PING_PID" 2> /dev/null \
-	  || test -d "/proc/$NAT_PING_PID" 2> /dev/null
-	do sleep 1; done;
+  while [ -d "/proc/$PING_PID" ] || [ -d "/proc/$NAT_PING_PID" ]
+    do sleep 1
+  done
   echo "  owpings returned"
   
   $PAUSE_CMD
