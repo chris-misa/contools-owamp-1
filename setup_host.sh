@@ -15,7 +15,7 @@ CONTAINER_NAME="owamp-container"
 
 
 # Install the stuff
-source setup.sh
+source ./setup.sh
 
 # Create a macvlan network
 docker network create -d macvlan \
@@ -27,7 +27,7 @@ docker network create -d macvlan \
 
 # Spin up container in daemon-mode
 docker run --rm -d --network=$NET_NAME \
-        --name=$CONTAINER_NAME
+        --name=$CONTAINER_NAME \
 	$CONTAINER_IMAGE daemon
 
 # Start native owamp

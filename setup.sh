@@ -46,3 +46,11 @@ apt-get update
 apt-get install -y docker-ce
 
 
+#
+# Eject app armor which gets in the way of
+# automatically doing thing in containers from native space
+#
+# use `aa-status` to check that this went through
+#
+systemctl disable apparmor.service --now
+service apparmor teardown
