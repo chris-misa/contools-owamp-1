@@ -54,3 +54,10 @@ apt-get install -y docker-ce
 #
 systemctl disable apparmor.service --now
 service apparmor teardown
+
+
+#
+# Force an ntp update, then stop the service to prevent spikes during experiments
+#
+service ntp stop
+ntpd -gq
