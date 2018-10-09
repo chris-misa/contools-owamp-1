@@ -48,10 +48,7 @@ do
   export PING_PID=`ps -e | grep owping | sed -E 's/ *([0-9]+) .*/\1/'`
   echo "  got ping pid: $PING_PID"
   
-  #######################
-  # This and the one below are not working!
-
-  while [ -d "/proc/$PING_PID" ]; do sleep 1; done;
+  wait_on $PING_PID
   echo "  owping returned"
 
   $PAUSE_CMD
@@ -85,9 +82,7 @@ do
   echo "  native pinging. . . (pid $NAT_PING_PID)"
   
   
-  while [ -d "/proc/$PING_PID" ] || [ -d "/proc/$NAT_PING_PID" ]
-    do sleep 1
-  done
+  wait_on $PING_PID $NAT_PING_PID
   echo "  owpings returned"
   
   $PAUSE_CMD
