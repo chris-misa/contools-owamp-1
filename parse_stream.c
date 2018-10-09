@@ -314,19 +314,17 @@ int main(int argc, char *argv[])
           recv_events_overhead = (float)recv_num_func * usec_per_event;
           recv_adj_latency = (float)recv_raw_usec - recv_events_overhead;
 
-#ifdef SHOW_SEND_RECV
+          print_timestamp(&evt.ts);
           fprintf(stdout, "recv raw_latency: %llu, num_events: %d, events_overhead: %f, adj_latency: %f\n",
                   recv_raw_usec,
                   recv_num_func,
                   recv_events_overhead,
                   recv_adj_latency);
-#endif
-          print_timestamp(&evt.ts);
-          fprintf(stdout, "rtt raw_latency: %llu, events_overhead: %f, adj_latency: %f\n",
-                  recv_raw_usec + send_raw_usec,
-                  recv_events_overhead + send_events_overhead,
-                  recv_adj_latency + send_adj_latency);
-                  
+          // fprintf(stdout, "rtt raw_latency: %llu, events_overhead: %f, adj_latency: %f\n",
+          //         recv_raw_usec + send_raw_usec,
+          //         recv_events_overhead + send_events_overhead,
+          //         recv_adj_latency + send_adj_latency);
+          //         
           recv_sum += finish_recv_time.tv_sec * 1000000
                     + finish_recv_time.tv_usec;
           recv_num++;
@@ -367,13 +365,12 @@ int main(int argc, char *argv[])
           send_raw_usec = finish_send_time.tv_sec * 1000000 + finish_send_time.tv_usec;
           send_events_overhead = (float)send_num_func * usec_per_event;
           send_adj_latency = (float)send_raw_usec - send_events_overhead;
-#ifdef SHOW_SEND_RECV
+          print_timestamp(&evt.ts);
           fprintf(stdout, "send latency: %llu, num_events: %d, events_overhead: %f, adj_latency: %f\n",
                   send_raw_usec,
                   send_num_func,
                   send_events_overhead,
                   send_adj_latency);
-#endif
           send_sum += finish_send_time.tv_sec * 1000000
                     + finish_send_time.tv_usec;
           send_num++;
