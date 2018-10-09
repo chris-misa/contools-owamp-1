@@ -99,6 +99,7 @@ do
   cat container_monitored_${TARGET_IPV4}_${arg}.trace \
 	  | $PARSE_CMD \
 	  > container_monitored_${TARGET_IPV4}_${arg}.latency
+  rm container_monitored_${TARGET_IPV4}_${arg}.trace
   echo "  converted to latencies"
 
   if [ $arg != "nop" ]

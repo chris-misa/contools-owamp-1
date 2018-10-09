@@ -45,15 +45,13 @@
 // Number of probes used to get ftrace overhead
 #define OVERHEAD_NPROBES 10
 
-// Discard latencies above this threshold as outliers (usec)
+// Discard latencies above this threshold as outliers
 #define MAX_RAW_LATENCY 1000000
 
 // Max file path for saving current directory
 #ifndef PATH_MAX
 #define PATH_MAX 512
 #endif
-
-#define SHOW_SEND_RECV
 
 static volatile int running = 1;
 
@@ -242,6 +240,8 @@ int main(int argc, char *argv[])
   float recv_events_overhead = 0.0;
   float recv_adj_latency = 0.0;
 
+  int ping_on_wire = 0;
+
   char synced_indicator[PATH_MAX];
 
 
@@ -288,7 +288,8 @@ int main(int argc, char *argv[])
       // Handle events
 
       if (!strncmp(in_outer_func, evt.func_name, evt.func_name_len)
-       && !strncmp(in_outer_dev, evt.dev, evt.dev_len)) {
+       && !strncmp(in_outer_dev, evt.dev, evt.dev_len)
+       && ping_on_wire) {
         // Got a inbound event on outer dev
 
         memcpy(recv_skbaddr, evt.skbaddr, evt.skbaddr_len);
@@ -300,7 +301,8 @@ int main(int argc, char *argv[])
       if (!strncmp(in_inner_func, evt.func_name, evt.func_name_len)
        && !strncmp(in_inner_dev, evt.dev, evt.dev_len)
        && !strncmp(recv_skbaddr, evt.skbaddr, evt.skbaddr_len)
-       && expect_recv) {
+       && expect_recv
+       && ping_on_wire) {
         // Got a inbound event on inner dev, the skbaddr matches, and it was expected
 
         finish_recv_time = evt.ts;
@@ -312,27 +314,36 @@ int main(int argc, char *argv[])
           recv_events_overhead = (float)recv_num_func * usec_per_event;
           recv_adj_latency = (float)recv_raw_usec - recv_events_overhead;
 
-          print_timestamp(&evt.ts);
+#ifdef SHOW_SEND_RECV
           fprintf(stdout, "recv raw_latency: %llu, num_events: %d, events_overhead: %f, adj_latency: %f\n",
                   recv_raw_usec,
                   recv_num_func,
                   recv_events_overhead,
                   recv_adj_latency);
+#endif
+          print_timestamp(&evt.ts);
+          fprintf(stdout, "rtt raw_latency: %llu, events_overhead: %f, adj_latency: %f\n",
+                  recv_raw_usec + send_raw_usec,
+                  recv_events_overhead + send_events_overhead,
+                  recv_adj_latency + send_adj_latency);
                   
           recv_sum += finish_recv_time.tv_sec * 1000000
                     + finish_recv_time.tv_usec;
           recv_num++;
+          ping_on_wire = 0;
         } else {
 
           // Discard received packet as outlier
           fprintf(stdout, "discarded recv: %lu\n",
                   finish_recv_time.tv_sec * 1000000 + finish_recv_time.tv_usec);
+          ping_on_wire = 0;
         }
         expect_recv = 0;
 
       } else
       if (!strncmp(out_inner_func, evt.func_name, evt.func_name_len)
-       && !strncmp(out_inner_dev, evt.dev, evt.dev_len)) {
+       && !strncmp(out_inner_dev, evt.dev, evt.dev_len)
+       && !ping_on_wire) {
 
         // Got a outbound event on inner dev
         memcpy(send_skbaddr, evt.skbaddr, evt.skbaddr_len);
@@ -344,7 +355,8 @@ int main(int argc, char *argv[])
       if (!strncmp(out_outer_func, evt.func_name, evt.func_name_len)
        && !strncmp(out_outer_dev, evt.dev, evt.dev_len)
        && !strncmp(send_skbaddr, evt.skbaddr, evt.skbaddr_len)
-       && expect_send) {
+       && expect_send
+       && !ping_on_wire) {
         // Got a outbound event on outer dev, the skbaddr matches, and we were expecting it
 
         finish_send_time = evt.ts;
@@ -355,15 +367,17 @@ int main(int argc, char *argv[])
           send_raw_usec = finish_send_time.tv_sec * 1000000 + finish_send_time.tv_usec;
           send_events_overhead = (float)send_num_func * usec_per_event;
           send_adj_latency = (float)send_raw_usec - send_events_overhead;
-          print_timestamp(&evt.ts);
+#ifdef SHOW_SEND_RECV
           fprintf(stdout, "send latency: %llu, num_events: %d, events_overhead: %f, adj_latency: %f\n",
                   send_raw_usec,
                   send_num_func,
                   send_events_overhead,
                   send_adj_latency);
+#endif
           send_sum += finish_send_time.tv_sec * 1000000
                     + finish_send_time.tv_usec;
           send_num++;
+          ping_on_wire = 1;
         } else {
 
           // Discard send packet info as outlier
